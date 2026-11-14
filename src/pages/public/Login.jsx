@@ -1,27 +1,53 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import authService from "../../services/auth/authService";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { loginSuccess } from "../../store/authSlice";
 
 const Login = () => {
 
+  const [errorMessage, setErrorMessage] = useState("");
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const navigate = useNavigate();
+  const initialValues = {
+    email: "",
+    password: ""
+  };
+
+
+  const validationSchema = Yup.object({
+    email: Yup.string()
+      .email("Adresse e-mail invalide")
+      .required("L'adresse e-mail est obligatoire"),
+
+    password: Yup.string()
+      .required("Le mot de passe est obligatoire")
+  });
+
+  const onSubmit = (values) => {
+    console.log(values);
+    authService.seConnecter(values).then((response) => {
+      console.log(response);
+      dispatch(loginSuccess(response.data.accessToken));
+      console.log("Utilisateur connecté :", user);
+      if (user && user.role === 'ROLE_ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/user');
+      }
+    }).catch((error) => {
+      setErrorMessage("Erreur lors de la connexion. Veuillez vérifier vos identifiants.");
+      console.error(error);
+    });
+  };
+
   const formik = useFormik({
-    initialValues: {
-      email: "",
-      password: ""
-    },
-
-    validationSchema: Yup.object({
-      email: Yup.string()
-        .email("Adresse e-mail invalide")
-        .required("L'adresse e-mail est obligatoire"),
-
-      password: Yup.string()
-        .required("Le mot de passe est obligatoire")
-    }),
-
-    onSubmit: (values) => {
-      console.log(values);
-    }
+    initialValues,
+    validationSchema,
+    onSubmit
   });
 
   return (
@@ -30,13 +56,17 @@ const Login = () => {
       <div className="container">
         <div className="row justify-content-center">
 
-          <div className="col-12 col-sm-10 col-md-8 col-lg-8 col-xl-6">
+          <div className="col-12 col-sm-10 col-md-8 col-lg-7 col-xl-6">
 
             <div className="card border-0 shadow rounded-4">
+
               <div className="card-body p-4 p-md-5">
 
                 <div className="text-center mb-4">
 
+                  <h2 className="fw-bold mb-2">
+                    RENO<span className="text-success">VIAL</span>
+                  </h2>
 
                   <h4 className="fw-bold mt-4">
                     Bienvenue !
@@ -45,11 +75,13 @@ const Login = () => {
                   <p className="text-secondary">
                     Connectez-vous à votre espace client.
                   </p>
+
                 </div>
 
                 <form onSubmit={formik.handleSubmit}>
 
                   <div className="mb-3">
+
                     <label className="form-label fw-semibold">
                       Adresse e-mail
                     </label>
@@ -58,8 +90,8 @@ const Login = () => {
                       type="email"
                       name="email"
                       className={`form-control form-control-lg ${formik.touched.email && formik.errors.email
-                          ? "is-invalid"
-                          : ""
+                        ? "is-invalid"
+                        : ""
                         }`}
                       placeholder="exemple@email.com"
                       value={formik.values.email}
@@ -72,9 +104,11 @@ const Login = () => {
                         {formik.errors.email}
                       </div>
                     )}
+
                   </div>
 
                   <div className="mb-4">
+
                     <label className="form-label fw-semibold">
                       Mot de passe
                     </label>
@@ -83,8 +117,8 @@ const Login = () => {
                       type="password"
                       name="password"
                       className={`form-control form-control-lg ${formik.touched.password && formik.errors.password
-                          ? "is-invalid"
-                          : ""
+                        ? "is-invalid"
+                        : ""
                         }`}
                       placeholder="Votre mot de passe"
                       value={formik.values.password}
@@ -97,6 +131,7 @@ const Login = () => {
                         {formik.errors.password}
                       </div>
                     )}
+
                   </div>
 
                   <button
@@ -106,9 +141,16 @@ const Login = () => {
                     Se connecter
                   </button>
 
+                  {errorMessage && (
+                    <div className="alert alert-danger mt-3" role="alert">
+                      {errorMessage}
+                    </div>
+                  )}
+
                 </form>
 
                 <div className="text-center mt-4">
+
                   <p className="text-secondary mb-1">
                     Vous n'avez pas encore de compte ?
                   </p>
@@ -119,15 +161,18 @@ const Login = () => {
                   >
                     Créer un compte
                   </Link>
+
                 </div>
 
                 <div className="text-center mt-3">
+
                   <Link
                     to="/"
                     className="text-secondary text-decoration-none small"
                   >
                     Retour à l'accueil
                   </Link>
+
                 </div>
 
               </div>
