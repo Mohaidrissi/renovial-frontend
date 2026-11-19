@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import prestationService from "../../services/public/prestationService";
 
 const DevisEnLigne = () => {
 
@@ -18,27 +19,15 @@ const DevisEnLigne = () => {
         precisions: ""
     });
 
-
     useEffect(() => {
 
-        const controller = new AbortController();
-
-        const chargerServices = async () => {
+        const chargerPrestations = async () => {
 
             try {
 
-                const response = await fetch(
-                    "http://localhost:8081/api/services/actifs",
-                    { signal: controller.signal }
-                );
+                const donnees = await prestationService.recupererPrestationsActives();
 
-                if (!response.ok) {
-                    throw new Error("Impossible de récupérer les services.");
-                }
-
-                const donnees = await response.json();
-
-                const servicesFormates = donnees.map(service => {
+                const prestationsFormatees = donnees.map(service => {
 
                     const unites = {
                         M2: "m²",
@@ -61,31 +50,24 @@ const DevisEnLigne = () => {
 
                 });
 
-                setTravaux(servicesFormates);
+                setTravaux(prestationsFormatees);
 
             } catch (error) {
 
-                if (error.name !== "AbortError") {
-                    setErreur("Impossible de charger les services. Veuillez réessayer.");
-                }
+                setErreur("Impossible de charger les prestations.");
 
             } finally {
 
-                if (!controller.signal.aborted) {
-                    setChargement(false);
-                }
+                setChargement(false);
 
             }
 
         };
 
-        chargerServices();
-
-        return () => controller.abort();
+        chargerPrestations();
 
     }, []);
 
- 
     const modifierSelection = (id) => {
 
         setTravaux(travaux.map(travail =>
@@ -96,7 +78,6 @@ const DevisEnLigne = () => {
 
     };
 
-
     const modifierQuantite = (id, quantite) => {
 
         setTravaux(travaux.map(travail =>
@@ -106,7 +87,6 @@ const DevisEnLigne = () => {
         ));
 
     };
-
 
     const travauxSelectionnes = travaux.filter(
         travail => travail.actif && travail.selectionne && travail.quantite > 0
@@ -120,13 +100,11 @@ const DevisEnLigne = () => {
     const tva = totalHT * 0.055;
     const totalTTC = totalHT + tva;
 
-  
     const formaterPrix = (prix) =>
         prix.toLocaleString("fr-FR", {
             maximumFractionDigits: 2
         }) + " €";
 
- 
     const envoyerDemande = (e) => {
 
         e.preventDefault();
@@ -174,7 +152,6 @@ const DevisEnLigne = () => {
 
                     <div className="col-lg-8">
 
-                  
                         <section className="mb-4">
 
                             <h6 className="fw-bold mb-3">
@@ -207,7 +184,6 @@ const DevisEnLigne = () => {
 
                         </section>
 
-            
                         <section className="mb-4">
 
                             <h6 className="fw-bold mb-3">
@@ -294,13 +270,10 @@ const DevisEnLigne = () => {
 
                         </section>
 
-                
                         <section className="mb-4">
 
                             <h6 className="fw-bold mb-2">
                                 Coordonnées
-                                <span className="text-muted small fw-normal">
-                                </span>
                             </h6>
 
                             <div className="row g-2 mb-2">
@@ -361,7 +334,6 @@ const DevisEnLigne = () => {
 
                     </div>
 
-                 
                     <div className="col-lg-4">
 
                         <section
