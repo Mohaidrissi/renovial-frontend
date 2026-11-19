@@ -64,10 +64,6 @@ const Login = () => {
 
                 <div className="text-center mb-4">
 
-                  <h2 className="fw-bold mb-2">
-                    RENO<span className="text-success">VIAL</span>
-                  </h2>
-
                   <h4 className="fw-bold mt-4">
                     Bienvenue !
                   </h4>
