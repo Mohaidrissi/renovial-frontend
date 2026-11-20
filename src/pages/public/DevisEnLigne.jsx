@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import prestationService from "../../services/public/prestationService";
+import typeBienService from "../../services/public/typeBienService.js";
+import devisService from "../../services/client/devisService";
 
 const DevisEnLigne = () => {
 
     const navigate = useNavigate();
 
-    const [typeBien, setTypeBien] = useState("Appartement");
+    const [typesBien, setTypesBien] = useState([]);
+    const [idTypeBien, setIdTypeBien] = useState("");
 
     const [travaux, setTravaux] = useState([]);
     const [chargement, setChargement] = useState(true);
+    const [envoi, setEnvoi] = useState(false);
     const [erreur, setErreur] = useState("");
 
     const [coordonnees, setCoordonnees] = useState({
@@ -21,40 +25,50 @@ const DevisEnLigne = () => {
 
     useEffect(() => {
 
-        const chargerPrestations = async () => {
+        const chargerDonnees = async () => {
 
             try {
 
-                const donnees = await prestationService.recupererPrestationsActives();
+                const [prestations, types] = await Promise.all([
+                    prestationService.recupererPrestationsActives(),
+                    typeBienService.recupererTypesBien()
+                ]);
 
-                const prestationsFormatees = donnees.map(service => {
+                const unites = {
+                    M2: "m²",
+                    ML: "ml",
+                    U: "unité",
+                    M3: "m³",
+                    FORFAIT: "forfait"
+                };
 
-                    const unites = {
-                        M2: "m²",
-                        ML: "ml",
-                        U: "unité",
-                        M3: "m³",
-                        FORFAIT: "forfait"
-                    };
-
-                    return {
-                        id: service.idService,
-                        nom: service.nom,
-                        description: service.description,
-                        prix: Number(service.prixUnitaire),
-                        unite: unites[service.unite.code] || service.unite.libelle,
-                        quantite: 0,
-                        actif: service.actif,
-                        selectionne: false
-                    };
-
-                });
+                const prestationsFormatees = prestations.map(service => ({
+                    id: service.idService,
+                    nom: service.nom,
+                    description: service.description,
+                    prix: Number(service.prixUnitaire),
+                    unite: unites[service.unite.code] || service.unite.libelle,
+                    quantite: "",
+                    actif: service.actif,
+                    selectionne: false
+                }));
 
                 setTravaux(prestationsFormatees);
+                setTypesBien(types);
+
+                const appartement = types.find(
+                    type => type.libelle === "Appartement"
+                );
+
+                if (appartement) {
+                    setIdTypeBien(appartement.idTypeBien);
+                } else if (types.length > 0) {
+                    setIdTypeBien(types[0].idTypeBien);
+                }
 
             } catch (error) {
 
-                setErreur("Impossible de charger les prestations.");
+                setErreur("Impossible de charger les données du devis.");
 
             } finally {
 
@@ -64,7 +78,7 @@ const DevisEnLigne = () => {
 
         };
 
-        chargerPrestations();
+        chargerDonnees();
 
     }, []);
 
@@ -82,51 +96,104 @@ const DevisEnLigne = () => {
 
         setTravaux(travaux.map(travail =>
             travail.id === id
-                ? { ...travail, quantite: Math.max(0, Number(quantite)) }
+                ? {
+                    ...travail,
+                    quantite: quantite === ""
+                        ? ""
+                        : Math.max(0, Number(quantite))
+                }
                 : travail
         ));
 
     };
 
     const travauxSelectionnes = travaux.filter(
-        travail => travail.actif && travail.selectionne && travail.quantite > 0
+        travail =>
+            travail.actif &&
+            travail.selectionne &&
+            Number(travail.quantite) > 0
     );
 
     const totalHT = travauxSelectionnes.reduce(
-        (total, travail) => total + travail.prix * travail.quantite,
+        (total, travail) =>
+            total + travail.prix * Number(travail.quantite),
         0
     );
 
     const tva = totalHT * 0.055;
     const totalTTC = totalHT + tva;
 
+    const typeBienSelectionne = typesBien.find(
+        type => type.idTypeBien === Number(idTypeBien)
+    );
+
+    const afficherTypeBien = (libelle) => {
+        return libelle === "Local professionnel" ? "Local pro" : libelle;
+    };
+
     const formaterPrix = (prix) =>
         prix.toLocaleString("fr-FR", {
+            minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }) + " €";
 
-    const envoyerDemande = (e) => {
+    const envoyerDemande = async (e) => {
 
         e.preventDefault();
 
-        if (travauxSelectionnes.length === 0) {
-            alert("Veuillez sélectionner au moins un travail avec une quantité supérieure à zéro.");
+        if (!idTypeBien) {
+            setErreur("Veuillez sélectionner un type de bien.");
             return;
         }
 
-        const reference = `2026-${String(
-            Math.floor(Math.random() * 999) + 1
-        ).padStart(3, "0")}`;
+        if (travauxSelectionnes.length === 0) {
+            setErreur("Veuillez sélectionner au moins un travail avec une quantité supérieure à zéro.");
+            return;
+        }
 
-        navigate("/confirmation-devis", {
-            state: {
-                reference: reference,
-                totalTTC: Math.round(totalTTC),
-                typeBien: typeBien,
-                travaux: travauxSelectionnes,
-                coordonnees: coordonnees
-            }
-        });
+        setErreur("");
+        setEnvoi(true);
+
+        try {
+
+            const devisData = {
+                nom: coordonnees.nom,
+                email: coordonnees.email,
+                telephone: coordonnees.telephone,
+                precisions: coordonnees.precisions,
+                idTypeBien: Number(idTypeBien),
+                travaux: travauxSelectionnes.map(travail => ({
+                    idService: travail.id,
+                    quantite: Number(travail.quantite)
+                }))
+            };
+
+            const response = await devisService.creerDevis(devisData);
+
+            navigate("/confirmation-devis", {
+                state: {
+                    reference: response.reference,
+                    totalHT: response.totalHt,
+                    totalTVA: response.totalTva,
+                    totalTTC: response.totalTtc,
+                    typeBien: typeBienSelectionne?.libelle,
+                    travaux: travauxSelectionnes,
+                    coordonnees: coordonnees
+                }
+            });
+
+        } catch (error) {
+
+            setErreur(
+                error.response?.data?.message ||
+                "Impossible d'envoyer votre demande de devis."
+            );
+
+        } finally {
+
+            setEnvoi(false);
+
+        }
 
     };
 
@@ -160,22 +227,22 @@ const DevisEnLigne = () => {
 
                             <div className="d-flex flex-wrap gap-2">
 
-                                {["Maison", "Appartement", "Local pro"].map(type => (
+                                {typesBien.map(type => (
 
                                     <button
-                                        key={type}
+                                        key={type.idTypeBien}
                                         type="button"
-                                        onClick={() => setTypeBien(type)}
+                                        onClick={() => setIdTypeBien(type.idTypeBien)}
                                         className="btn px-4 py-1 rounded-pill"
                                         style={{
-                                            backgroundColor: typeBien === type ? "#E6F7EE" : "#FFFFFF",
-                                            color: typeBien === type ? "#0F5132" : "#1F2937",
-                                            border: typeBien === type
+                                            backgroundColor: Number(idTypeBien) === type.idTypeBien ? "#E6F7EE" : "#FFFFFF",
+                                            color: Number(idTypeBien) === type.idTypeBien ? "#0F5132" : "#1F2937",
+                                            border: Number(idTypeBien) === type.idTypeBien
                                                 ? "1px solid #22C55E"
                                                 : "1px solid #D1D5DB"
                                         }}
                                     >
-                                        {type}
+                                        {afficherTypeBien(type.libelle)}
                                     </button>
 
                                 ))}
@@ -202,7 +269,7 @@ const DevisEnLigne = () => {
                                 </div>
                             )}
 
-                            {!chargement && !erreur && travaux.length === 0 && (
+                            {!chargement && travaux.length === 0 && (
                                 <p className="text-muted">
                                     Aucun service disponible pour le moment.
                                 </p>
@@ -253,6 +320,7 @@ const DevisEnLigne = () => {
                                         <input
                                             type="number"
                                             min="0"
+                                            step="1"
                                             className="form-control form-control-sm text-center fw-semibold"
                                             value={travail.quantite}
                                             disabled={!travail.selectionne}
@@ -279,6 +347,7 @@ const DevisEnLigne = () => {
                             <div className="row g-2 mb-2">
 
                                 <div className="col-md-4">
+
                                     <input
                                         type="text"
                                         className="form-control"
@@ -289,9 +358,11 @@ const DevisEnLigne = () => {
                                             nom: e.target.value
                                         })}
                                     />
+
                                 </div>
 
                                 <div className="col-md-4">
+
                                     <input
                                         type="email"
                                         className="form-control"
@@ -302,9 +373,11 @@ const DevisEnLigne = () => {
                                             email: e.target.value
                                         })}
                                     />
+
                                 </div>
 
                                 <div className="col-md-4">
+
                                     <input
                                         type="tel"
                                         className="form-control"
@@ -315,6 +388,7 @@ const DevisEnLigne = () => {
                                             telephone: e.target.value
                                         })}
                                     />
+
                                 </div>
 
                             </div>
@@ -346,7 +420,9 @@ const DevisEnLigne = () => {
                             </h5>
 
                             <p className="small text-muted">
-                                Type de bien : {typeBien}
+                                Type de bien : {typeBienSelectionne
+                                    ? afficherTypeBien(typeBienSelectionne.libelle)
+                                    : "Non sélectionné"}
                             </p>
 
                             {travauxSelectionnes.map(travail => (
@@ -357,6 +433,7 @@ const DevisEnLigne = () => {
                                 >
 
                                     <div>
+
                                         <p className="small fw-semibold mb-0">
                                             {travail.nom}
                                         </p>
@@ -364,10 +441,11 @@ const DevisEnLigne = () => {
                                         <p className="small text-muted mb-0">
                                             {travail.quantite} {travail.unite}
                                         </p>
+
                                     </div>
 
                                     <strong className="small">
-                                        {formaterPrix(travail.prix * travail.quantite)}
+                                        {formaterPrix(travail.prix * Number(travail.quantite))}
                                     </strong>
 
                                 </div>
@@ -423,16 +501,22 @@ const DevisEnLigne = () => {
                             </div>
 
                             <p className="small text-muted mb-3">
-                                🟠 Statut : brouillon
+                                🟠 Statut : en attente après envoi
                             </p>
+
+                            {erreur && (
+                                <div className="alert alert-danger small">
+                                    {erreur}
+                                </div>
+                            )}
 
                             <button
                                 type="submit"
-                                disabled={chargement || !!erreur}
+                                disabled={chargement || envoi}
                                 className="btn w-100 text-white fw-semibold rounded-pill mb-2"
                                 style={{ backgroundColor: "#22C55E" }}
                             >
-                                Envoyer ma demande
+                                {envoi ? "Envoi en cours..." : "Envoyer ma demande"}
                             </button>
 
                             <button
