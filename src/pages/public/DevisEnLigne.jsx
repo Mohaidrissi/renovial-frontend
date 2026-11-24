@@ -50,6 +50,7 @@ const DevisEnLigne = () => {
                     unite: unites[service.unite.code] || service.unite.libelle,
                     quantite: "",
                     actif: service.actif,
+                    economieEnergie: service.economieEnergie,
                     selectionne: false
                 }));
 
@@ -120,12 +121,21 @@ const DevisEnLigne = () => {
         0
     );
 
-    const tva = totalHT * 0.055;
-    const totalTTC = totalHT + tva;
-
     const typeBienSelectionne = typesBien.find(
         type => type.idTypeBien === Number(idTypeBien)
     );
+
+    // Même règle que le backend : local pro 20 %, sinon 5,5 % (économie d'énergie) ou 10 %
+    const tauxTva = (travail) =>
+        typeBienSelectionne?.professionnel ? 0.20 : (travail.economieEnergie ? 0.055 : 0.10);
+
+    const tva = travauxSelectionnes.reduce(
+        (total, travail) =>
+            total + Math.round(travail.prix * Number(travail.quantite) * tauxTva(travail) * 100) / 100,
+        0
+    );
+
+    const totalTTC = totalHT + tva;
 
     const afficherTypeBien = (libelle) => {
         return libelle === "Local professionnel" ? "Local pro" : libelle;
@@ -466,7 +476,7 @@ const DevisEnLigne = () => {
                             </div>
 
                             <div className="d-flex justify-content-between mb-3">
-                                <span className="text-muted">TVA 5,5 %</span>
+                                <span className="text-muted">TVA</span>
                                 <strong>{formaterPrix(tva)}</strong>
                             </div>
 
