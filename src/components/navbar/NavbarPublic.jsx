@@ -1,13 +1,12 @@
 import { Link } from "react-router-dom";
+import Marque from "../common/Marque";
 
 const NavbarPublic = () => {
     return (
         <nav className="navbar navbar-expand-lg bg-white shadow-sm sticky-top">
             <div className="container">
 
-                <Link to="/" className="navbar-brand fw-bold fs-4">
-                    RENO<span className="text-success">VIAL</span>
-                </Link>
+                <Marque />
 
                 <button
                     className="navbar-toggler"

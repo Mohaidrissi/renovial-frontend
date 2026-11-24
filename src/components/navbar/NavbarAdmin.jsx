@@ -1,13 +1,24 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logout } from "../../store/authSlice";
+import Marque from "../common/Marque";
 
 const NavbarAdmin = () => {
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    // Efface le jeton puis renvoie vers la page de connexion
+    const seDeconnecter = () => {
+        dispatch(logout());
+        navigate("/login");
+    };
+
     return (
         <nav className="navbar navbar-expand-lg bg-white shadow-sm sticky-top">
             <div className="container-fluid px-4">
 
-                <Link to="/admin-dashboard" className="navbar-brand fw-bold fs-4">
-                    RENO<span className="text-success">VIAL</span>
-                </Link>
+                <Marque lien="/admin-dashboard" />
 
                 <button
                     className="navbar-toggler"
@@ -37,9 +48,9 @@ const NavbarAdmin = () => {
                             Utilisateurs
                         </Link>
 
-                        <Link to="/login" className="nav-link">
+                        <button type="button" className="nav-link btn btn-link" onClick={seDeconnecter}>
                             Déconnexion
-                        </Link>
+                        </button>
 
                     </div>
                 </div>

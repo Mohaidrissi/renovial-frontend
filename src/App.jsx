@@ -23,6 +23,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import GestionDevis from './pages/admin/GestionDevis';
 import GestionServices from './pages/admin/GestionServices';
 import GestionUtilisateurs from './pages/admin/GestionUtilisateurs';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 const App = () => {
     return (
@@ -42,7 +43,7 @@ const App = () => {
                 </Route>
 
                 {/* Espace client */}
-                <Route element={<ClientLayout />}>
+                <Route element={<ProtectedRoute role="ROLE_CLIENT"><ClientLayout /></ProtectedRoute>}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/mes-devis" element={<MesDevis />} />
                     <Route path="/detail-devis" element={<DetailDevis />} />
@@ -50,7 +51,7 @@ const App = () => {
                 </Route>
 
                 {/* Espace administrateur */}
-                <Route element={<AdminLayout />}>
+                <Route element={<ProtectedRoute role="ROLE_ADMIN"><AdminLayout /></ProtectedRoute>}>
                     <Route path="/admin-dashboard" element={<AdminDashboard />} />
                     <Route path="/gestion-devis" element={<GestionDevis />} />
                     <Route path="/gestion-services" element={<GestionServices />} />

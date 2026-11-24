@@ -3,14 +3,14 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import authService from "../../services/auth/authService";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { jwtDecode } from "jwt-decode";
 import { loginSuccess } from "../../store/authSlice";
 
 const Login = () => {
 
   const [errorMessage, setErrorMessage] = useState("");
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
   const initialValues = {
     email: "",
@@ -27,20 +27,20 @@ const Login = () => {
       .required("Le mot de passe est obligatoire")
   });
 
-  const onSubmit = (values) => {
-    console.log(values);
+    const onSubmit = (values) => {
     authService.seConnecter(values).then((response) => {
-      console.log(response);
-      dispatch(loginSuccess(response.data.accessToken));
-      console.log("Utilisateur connecté :", user);
-      if (user && user.role === 'ROLE_ADMIN') {
-        navigate('/admin');
+      const token = response.data.accessToken;
+      dispatch(loginSuccess(token));
+
+      // Le rôle est écrit dans le jeton : on l'utilise pour choisir l'espace
+      const role = jwtDecode(token).role;
+      if (role === "ROLE_ADMIN") {
+        navigate("/admin-dashboard");
       } else {
-        navigate('/user');
+        navigate("/dashboard");
       }
-    }).catch((error) => {
+    }).catch(() => {
       setErrorMessage("Erreur lors de la connexion. Veuillez vérifier vos identifiants.");
-      console.error(error);
     });
   };
 
