@@ -9,7 +9,7 @@ const FooterPublic = () => {
                 <div className="row">
 
                     <div className="col-md-4 mb-4 text-start">
-                        <h2 className="fw-bold mb-3">Rénovial</h2>
+                        <h2 className="fw-bold mb-3 text-white">Rénovial</h2>
 
                         <p className="text-white-50">
                             Rénovation énergétique du bâtiment à Lille :
@@ -22,17 +22,14 @@ const FooterPublic = () => {
                         <h5 className="fw-bold mb-3">Contact</h5>
 
                         <p className="text-white-50">
-                            <i className="bi bi-geo-alt me-2"></i>
                             21 Avenue Albert, 59000 Lille
                         </p>
 
                         <p className="text-white-50">
-                            <i className="bi bi-telephone me-2"></i>
                             06 50 47 48 38
                         </p>
 
                         <p className="text-white-50">
-                            <i className="bi bi-envelope me-2"></i>
                             contact@renovial.fr
                         </p>
                     </div>
@@ -79,7 +76,7 @@ const FooterPublic = () => {
                         </p>
                     </div>
 
-                    <div className="col-md-6 text-start">
+                    <div className="col-md-6 text-start text-md-end">
                         <Link to="/mentions-legales" className="text-white-50 text-decoration-none me-3">
                             Mentions légales
                         </Link>

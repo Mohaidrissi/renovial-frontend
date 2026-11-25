@@ -4,9 +4,9 @@ import { Outlet } from 'react-router-dom';
 
 const AdminLayout = () => {
     return (
-        <div>
+        <div className="d-flex flex-column min-vh-100">
             <NavbarAdmin />
-            <main>
+            <main className="flex-grow-1">
                 <Outlet />
             </main>
             <FooterPublic />

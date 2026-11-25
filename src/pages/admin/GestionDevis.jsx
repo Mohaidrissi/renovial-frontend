@@ -5,6 +5,7 @@ const couleurStatut = (statut) => {
     if (statut === "En attente") return "bg-warning text-dark";
     if (statut === "Accepté") return "bg-success";
     if (statut === "Refusé") return "bg-danger";
+    if (statut === "En cours de traitement") return "bg-info text-dark";
     return "bg-secondary";
 };
 
@@ -47,7 +48,7 @@ const GestionDevis = () => {
                         <tbody>
                             {devis.map((d) => (
                                 <tr key={d.idDevis}>
-                                    <td className="fw-semibold">{d.reference}</td>
+                                    <td className="fw-semibold text-nowrap">{d.reference}</td>
                                     <td>{new Date(d.dateCreation).toLocaleDateString("fr-FR")}</td>
                                     <td>
                                         {d.nomContact}

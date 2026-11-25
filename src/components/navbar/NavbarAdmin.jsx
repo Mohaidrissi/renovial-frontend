@@ -16,7 +16,7 @@ const NavbarAdmin = () => {
 
     return (
         <nav className="navbar navbar-expand-lg bg-white shadow-sm sticky-top">
-            <div className="container-fluid px-4">
+            <div className="container">
 
                 <Marque lien="/admin-dashboard" />
 
