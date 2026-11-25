@@ -1,0 +1,158 @@
+/* Couleurs de la charte graphique Renovial (maquette Figma) */
+.accueil {
+    --vert-fonce: #0f3d2a;
+    --vert: #22c55e;
+    --vert-clair: #e6f7ee;
+}
+
+.accueil h1,
+.accueil h2 {
+    letter-spacing: -0.5px;
+    margin: 0;
+}
+
+/* Boutons verts vifs de la maquette */
+.btn-renovial {
+    background: var(--vert);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+}
+.btn-renovial:hover {
+    background: #16a34a;
+    color: #fff;
+}
+
+.texte-vert {
+    color: var(--vert);
+}
+
+.surtitre {
+    color: var(--vert);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+/* Fonds verts foncés (haut de page, section RGE) */
+.fond-vert {
+    background: radial-gradient(circle at 80% 20%, #1f6b45 0%, var(--vert-fonce) 55%, #0b2e20 100%);
+}
+
+.hero {
+    padding: 5rem 0 9rem;
+}
+
+.badge-hero {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #bbf7d0;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+/* Carte « vitrine » à droite du haut de page */
+.vitrine {
+    position: relative;
+    min-height: 440px;
+    border-radius: 1.5rem;
+    background: #8fa3b3 url("../../assets/images/accueil_maison.jpg") center 70% / cover no-repeat;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+}
+.vitrine .carte-flottante {
+    position: absolute;
+    background: #fff;
+    border-radius: 0.9rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    color: #1f2937;
+}
+.vitrine .etiquette {
+    position: absolute;
+    top: 4.5rem;
+    right: -1.2rem;
+    background: var(--vert);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.8rem;
+    border-radius: 0.6rem;
+    transform: rotate(-8deg);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Cartes qui chevauchent le bas du haut de page */
+.atouts {
+    margin-top: -6rem;
+    position: relative;
+}
+
+.carte-renovial {
+    background: #fff;
+    border: 1px solid #eef0f2;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(15, 61, 42, 0.08);
+    height: 100%;
+}
+
+.pastille-icone {
+    width: 44px;
+    height: 44px;
+    border-radius: 0.75rem;
+    background: var(--vert-clair);
+    color: #15803d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Étapes du devis */
+.etape-numero {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--vert);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 8px var(--vert-clair);
+}
+
+.pilule {
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 999px;
+    padding: 0.3rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.pilule.active {
+    background: var(--vert);
+    border-color: var(--vert);
+}
+
+.photo-apropos {
+    min-height: 360px;
+    border-radius: 1.5rem;
+    background: #6b4a2f url("../../assets/images/accueil_artisan.jpg") center 30% / cover no-repeat;
+    position: relative;
+}
+
+.bandeau-cta {
+    background: linear-gradient(120deg, var(--vert) 0%, #15803d 60%, var(--vert-fonce) 100%);
+    border-radius: 1.5rem;
+}
+
+.carte-contact {
+    background: var(--vert-clair);
+    border-radius: 1rem;
+}
+.carte-contact .point {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--vert);
+    flex-shrink: 0;
+    margin-top: 0.35rem;
+}

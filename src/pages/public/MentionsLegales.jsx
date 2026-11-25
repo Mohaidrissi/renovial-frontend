@@ -80,7 +80,7 @@ const MentionsLegales = () => {
                                 <p>Nom : Rénovial</p>
                                 <p>Adresse : 21 Avenue Albert, 59000 Lille</p>
                                 <p>Téléphone : 06 50 47 48 38</p>
-                                <p className="mb-0">E-mail : contact@renovial.fr</p>
+                                <p className="mb-0">E-mail : renovial@orange.fr</p>
                             </div>
                         </div>
                     </div>

@@ -30,7 +30,7 @@ const FooterPublic = () => {
                         </p>
 
                         <p className="text-white-50">
-                            contact@renovial.fr
+                            renovial@orange.fr
                         </p>
                     </div>
 
