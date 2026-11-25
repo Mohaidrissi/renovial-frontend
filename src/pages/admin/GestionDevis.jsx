@@ -24,13 +24,21 @@ const GestionDevis = () => {
             .finally(() => setChargement(false));
     }, []);
 
+    // Accepter ou refuser : on remplace la ligne par le devis renvoyé par le serveur
+    const changerStatut = (idDevis, code) => {
+        setErreur("");
+        adminDevisService.changerStatut(idDevis, code)
+            .then((maj) => setDevis((liste) => liste.map((d) => (d.idDevis === idDevis ? maj : d))))
+            .catch((error) => setErreur(error.response?.data?.message || "Impossible de changer le statut."));
+    };
+
     return (
         <div className="container py-4">
             <h1 className="h3 mb-4">Gestion des devis</h1>
 
             {chargement && <p>Chargement...</p>}
             {erreur && <div className="alert alert-danger">{erreur}</div>}
-            {!chargement && !erreur && devis.length === 0 && <p>Aucun devis pour le moment.</p>}
+            {!chargement && devis.length === 0 && <p>Aucun devis pour le moment.</p>}
 
             {devis.length > 0 && (
                 <div className="table-responsive">
@@ -43,6 +51,7 @@ const GestionDevis = () => {
                                 <th>Type de bien</th>
                                 <th className="text-end">Total TTC</th>
                                 <th>Statut</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -59,6 +68,20 @@ const GestionDevis = () => {
                                     <td className="text-end">{formatPrix(d.totalTtc)}</td>
                                     <td>
                                         <span className={`badge ${couleurStatut(d.statut)}`}>{d.statut}</span>
+                                    </td>
+                                    <td className="text-nowrap">
+                                        {d.statut === "En attente" && (
+                                            <>
+                                                <button className="btn btn-sm btn-success me-2"
+                                                        onClick={() => changerStatut(d.idDevis, "ACCEPTE")}>
+                                                    Accepter
+                                                </button>
+                                                <button className="btn btn-sm btn-outline-danger"
+                                                        onClick={() => changerStatut(d.idDevis, "REFUSE")}>
+                                                    Refuser
+                                                </button>
+                                            </>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
