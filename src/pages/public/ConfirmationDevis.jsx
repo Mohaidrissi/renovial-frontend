@@ -87,7 +87,7 @@ const ConfirmationDevis = () => {
                 {/* Actions */}
                 <div className="d-flex flex-wrap gap-3 mb-4">
                     <Link
-                        to="/detail-devis"
+                        to="/mes-devis"
                         className="btn text-white fw-semibold flex-fill"
                         style={{
                             backgroundColor: "#22C55E",

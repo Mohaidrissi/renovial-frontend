@@ -46,7 +46,7 @@ const App = () => {
                 <Route element={<ProtectedRoute role="ROLE_CLIENT"><ClientLayout /></ProtectedRoute>}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/mes-devis" element={<MesDevis />} />
-                    <Route path="/detail-devis" element={<DetailDevis />} />
+                    <Route path="/detail-devis/:idDevis"element={<DetailDevis />} />
                     <Route path="/profil" element={<Profil />} />
                 </Route>
 

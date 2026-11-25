@@ -132,7 +132,7 @@ const MesDevis = () => {
 
                                 <td>
                                     <Link
-                                        to="/detail-devis"
+                                        to={`/detail-devis/${item.idDevis}`}
                                         className="fw-semibold text-decoration-none"
                                         style={{ color: "#22C55E" }}
                                     >

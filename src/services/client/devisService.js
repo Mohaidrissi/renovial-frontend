@@ -11,9 +11,16 @@ const recupererMesDevis = async () => {
     return response.data;
 };
 
+// Détail d'un devis du client connecté
+const recupererMonDevis = async (idDevis) => {
+    const response = await apiClient.get(`/api/devis/mes-devis/${idDevis}`);
+    return response.data;
+};
+
 const devisService = {
     creerDevis,
-    recupererMesDevis
+    recupererMesDevis,
+    recupererMonDevis
 };
 
 export default devisService;

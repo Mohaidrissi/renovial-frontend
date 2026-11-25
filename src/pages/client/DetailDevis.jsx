@@ -1,36 +1,59 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import devisService from "../../services/client/devisService";
+
+const formaterPrix = (prix) =>
+    Number(prix).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
+
+const formaterNombre = (nombre) => Number(nombre).toLocaleString("fr-FR");
+
+const styleStatut = (statut) => {
+    if (statut === "En attente") return { backgroundColor: "#FEF3C7", color: "#92400E" };
+    if (statut === "En cours de traitement") return { backgroundColor: "#DBEAFE", color: "#1E40AF" };
+    if (statut === "Accepté") return { backgroundColor: "#E6F7EE", color: "#0F5132" };
+    if (statut === "Refusé") return { backgroundColor: "#FEE2E2", color: "#991B1B" };
+    return { backgroundColor: "#F3F4F6", color: "#6B7280" };
+};
 
 const DetailDevis = () => {
-    const travaux = [
-        {
-            nom: "Isolation écologique",
-            surface: "45 m²",
-            prix: "65 €/m²",
-            total: 2925
-        },
-        {
-            nom: "Peinture écologique",
-            surface: "80 m²",
-            prix: "30 €/m²",
-            total: 2400
-        }
-    ];
+    const { idDevis } = useParams();
+    const [devis, setDevis] = useState(null);
+    const [erreur, setErreur] = useState("");
 
-    const totalHT = travaux.reduce((total, travail) => total + travail.total, 0);
-    const tva = totalHT * 0.055;
-    const totalTTC = totalHT + tva;
+    useEffect(() => {
+        devisService.recupererMonDevis(idDevis)
+            .then((data) => setDevis(data))
+            .catch((error) => setErreur(error.response?.data?.message || "Impossible de charger le devis."));
+    }, [idDevis]);
 
-    const formaterPrix = (prix) => {
-        return prix.toLocaleString("fr-FR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }) + " €";
-    };
+    const boutonRetour = (
+        <Link
+            to="/mes-devis"
+            className="btn px-4 py-2"
+            style={{
+                color: "#0F5132",
+                border: "1px solid #0F5132",
+                borderRadius: "8px"
+            }}
+        >
+            ← Retour à mes devis
+        </Link>
+    );
 
-    const telechargerPDF = () => {
-        window.print();
-    };
+    if (erreur) {
+        return (
+            <div className="container-fluid px-4 py-5">
+                <div className="alert alert-danger">{erreur}</div>
+                {boutonRetour}
+            </div>
+        );
+    }
+
+    if (!devis) {
+        return <div className="container-fluid px-4 py-5"><p>Chargement...</p></div>;
+    }
+
+    const tva = devis.totalTtc - devis.totalHt;
 
     return (
         <div className="container-fluid px-4 py-5">
@@ -39,22 +62,16 @@ const DetailDevis = () => {
             <div className="mb-5">
                 <div className="d-flex flex-wrap align-items-center gap-3 mb-3">
                     <h2 className="fw-bold mb-0" style={{ color: "#1F2937" }}>
-                        Devis n° 2026-001
+                        Devis n° {devis.reference}
                     </h2>
 
-                    <span
-                        className="badge rounded-pill px-3 py-2"
-                        style={{
-                            backgroundColor: "#FEF3C7",
-                            color: "#92400E"
-                        }}
-                    >
-                        En attente
+                    <span className="badge rounded-pill px-3 py-2" style={styleStatut(devis.statut)}>
+                        {devis.statut}
                     </span>
                 </div>
 
                 <p className="text-muted mb-0">
-                    Retrouvez le détail de votre demande de devis.
+                    Demandé le {new Date(devis.dateCreation).toLocaleDateString("fr-FR")} · {devis.typeBien}
                 </p>
             </div>
 
@@ -69,31 +86,32 @@ const DetailDevis = () => {
                         <thead>
                             <tr style={{ color: "#6B7280" }}>
                                 <th className="py-3">Travail</th>
-                                <th>Surface</th>
-                                <th>Prix unitaire</th>
-                                <th>Total</th>
+                                <th>Quantité</th>
+                                <th>Prix unitaire HT</th>
+                                <th>TVA</th>
+                                <th>Total HT</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {travaux.map((travail, index) => (
-                                <tr key={index}>
-                                    <td className="py-4 fw-semibold">
-                                        {travail.nom}
-                                    </td>
-
-                                    <td>{travail.surface}</td>
-
-                                    <td>{travail.prix}</td>
-
-                                    <td className="fw-bold">
-                                        {formaterPrix(travail.total)}
-                                    </td>
+                            {devis.lignes.map((ligne) => (
+                                <tr key={ligne.service}>
+                                    <td className="py-4 fw-semibold">{ligne.service}</td>
+                                    <td>{formaterNombre(ligne.quantite)} {ligne.unite}</td>
+                                    <td>{formaterPrix(ligne.prixUnitaire)}</td>
+                                    <td>{formaterNombre(ligne.tauxTva)} %</td>
+                                    <td className="fw-bold">{formaterPrix(ligne.totalHt)}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
+
+                {devis.precisions && (
+                    <p className="text-muted mb-0">
+                        <strong>Vos précisions :</strong> {devis.precisions}
+                    </p>
+                )}
             </section>
 
             {/* Commentaire et récapitulatif */}
@@ -108,15 +126,12 @@ const DetailDevis = () => {
                                 borderLeft: "4px solid #22C55E"
                             }}
                         >
-                            <h5
-                                className="fw-bold mb-3"
-                                style={{ color: "#0F5132" }}
-                            >
+                            <h5 className="fw-bold mb-3" style={{ color: "#0F5132" }}>
                                 Commentaire de Rénovial
                             </h5>
 
                             <p className="mb-0" style={{ color: "#1F2937" }}>
-                                Devis en cours d'étude. Nous vous recontactons sous 48 h.
+                                {devis.commentaireAdmin || "Pas encore de commentaire. Nous étudions votre demande."}
                             </p>
                         </div>
                     </section>
@@ -124,31 +139,24 @@ const DetailDevis = () => {
 
                 <div className="col-md-6">
                     <section>
-                        <h5
-                            className="fw-bold mb-3"
-                            style={{ color: "#1F2937" }}
-                        >
+                        <h5 className="fw-bold mb-3" style={{ color: "#1F2937" }}>
                             Récapitulatif
                         </h5>
 
                         <div className="py-2 border-bottom">
                             <p className="text-muted mb-1">Total HT</p>
-                            <strong>{formaterPrix(totalHT)}</strong>
+                            <strong>{formaterPrix(devis.totalHt)}</strong>
                         </div>
 
                         <div className="py-2 border-bottom">
-                            <p className="text-muted mb-1">TVA 5,5 %</p>
+                            <p className="text-muted mb-1">TVA</p>
                             <strong>{formaterPrix(tva)}</strong>
                         </div>
 
                         <div className="py-3">
                             <p className="fw-bold mb-1">Total TTC</p>
-
-                            <strong
-                                className="fs-4"
-                                style={{ color: "#22C55E" }}
-                            >
-                                {formaterPrix(totalTTC)}
+                            <strong className="fs-4" style={{ color: "#22C55E" }}>
+                                {formaterPrix(devis.totalTtc)}
                             </strong>
                         </div>
                     </section>
@@ -158,22 +166,11 @@ const DetailDevis = () => {
 
             {/* Boutons */}
             <div className="d-flex flex-wrap gap-3 mb-4">
-
-                <Link
-                    to="/mes-devis"
-                    className="btn px-4 py-2"
-                    style={{
-                        color: "#0F5132",
-                        border: "1px solid #0F5132",
-                        borderRadius: "8px"
-                    }}
-                >
-                    ← Retour à mes devis
-                </Link>
+                {boutonRetour}
 
                 <button
                     type="button"
-                    onClick={telechargerPDF}
+                    onClick={() => window.print()}
                     className="btn px-4 py-2 text-white"
                     style={{
                         backgroundColor: "#22C55E",
@@ -182,7 +179,6 @@ const DetailDevis = () => {
                 >
                     Télécharger le devis (PDF)
                 </button>
-
             </div>
 
         </div>
