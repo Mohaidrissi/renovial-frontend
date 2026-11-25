@@ -5,8 +5,15 @@ const creerDevis = async (devisData) => {
     return response.data;
 };
 
+// Devis du client connecté (le token est ajouté par apiClient)
+const recupererMesDevis = async () => {
+    const response = await apiClient.get("/api/devis/mes-devis");
+    return response.data;
+};
+
 const devisService = {
-    creerDevis
+    creerDevis,
+    recupererMesDevis
 };
 
 export default devisService;

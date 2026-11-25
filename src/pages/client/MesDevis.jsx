@@ -1,33 +1,23 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import devisService from "../../services/client/devisService";
+
+const formatDate = (date) => new Date(date).toLocaleDateString("fr-FR");
+
+const formatPrix = (prix) =>
+    Number(prix).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
 
 const MesDevis = () => {
-    const devis = [
-        {
-            date: "09/10/2026",
-            reference: "2026-001",
-            total: "5 618 €",
-            statut: "En attente"
-        },
-        {
-            date: "02/10/2026",
-            reference: "2026-000",
-            total: "3 200 €",
-            statut: "Validé"
-        },
-        {
-            date: "25/09/2026",
-            reference: "2025-042",
-            total: "1 450 €",
-            statut: "Refusé"
-        },
-        {
-            date: "12/09/2026",
-            reference: "2025-038",
-            total: "8 900 €",
-            statut: "Validé"
-        }
-    ];
+    const [devis, setDevis] = useState([]);
+    const [chargement, setChargement] = useState(true);
+    const [erreur, setErreur] = useState("");
+
+    useEffect(() => {
+        devisService.recupererMesDevis()
+            .then((data) => setDevis(data))
+            .catch(() => setErreur("Impossible de charger vos devis."))
+            .finally(() => setChargement(false));
+    }, []);
 
     const getStatutStyle = (statut) => {
         switch (statut) {
@@ -36,7 +26,12 @@ const MesDevis = () => {
                     backgroundColor: "#FEF3C7",
                     color: "#92400E"
                 };
-            case "Validé":
+            case "En cours de traitement":
+                return {
+                    backgroundColor: "#DBEAFE",
+                    color: "#1E40AF"
+                };
+            case "Accepté":
                 return {
                     backgroundColor: "#E6F7EE",
                     color: "#0F5132"
@@ -90,6 +85,10 @@ const MesDevis = () => {
 
             </div>
 
+            {chargement && <p>Chargement...</p>}
+            {erreur && <div className="alert alert-danger">{erreur}</div>}
+
+            {devis.length > 0 && (
             <div className="table-responsive">
 
                 <table className="table align-middle mb-0">
@@ -108,10 +107,10 @@ const MesDevis = () => {
 
                         {devis.map((item) => (
 
-                            <tr key={item.reference}>
+                            <tr key={item.idDevis}>
 
                                 <td className="py-4 px-3">
-                                    {item.date}
+                                    {formatDate(item.dateCreation)}
                                 </td>
 
                                 <td className="fw-semibold">
@@ -119,7 +118,7 @@ const MesDevis = () => {
                                 </td>
 
                                 <td className="fw-bold">
-                                    {item.total}
+                                    {formatPrix(item.totalTtc)}
                                 </td>
 
                                 <td>
@@ -150,8 +149,9 @@ const MesDevis = () => {
                 </table>
 
             </div>
+            )}
 
-            {devis.length === 0 && (
+            {!chargement && !erreur && devis.length === 0 && (
                 <div className="py-5">
                     <p className="fw-semibold mb-2">
                         Vous n'avez pas encore de devis.
