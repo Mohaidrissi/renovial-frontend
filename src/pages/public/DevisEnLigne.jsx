@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import prestationService from "../../services/public/prestationService";
 import typeBienService from "../../services/public/typeBienService.js";
@@ -67,7 +67,7 @@ const DevisEnLigne = () => {
                     setIdTypeBien(types[0].idTypeBien);
                 }
 
-            } catch (error) {
+            } catch {
 
                 setErreur("Impossible de charger les données du devis.");
 

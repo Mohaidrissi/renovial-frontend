@@ -1,13 +1,10 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { SectionContact } from "./SectionsAccueil";
 
-
-const Contact = () => {
-  return (
-    <nav>
-      <Link to="/">Accueil</Link>
-    </nav>
-  );
-};
+// Même section que sur la page d'Accueil (le texte n'est écrit qu'une fois)
+const Contact = () => (
+    <div className="accueil">
+        <SectionContact />
+    </div>
+);
 
 export default Contact;

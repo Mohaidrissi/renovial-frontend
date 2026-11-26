@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import adminDevisService from "../../services/admin/adminDevisService";
 
 const couleurStatut = (statut) => {
@@ -16,6 +16,8 @@ const GestionDevis = () => {
     const [devis, setDevis] = useState([]);
     const [chargement, setChargement] = useState(true);
     const [erreur, setErreur] = useState("");
+    // Devis en cours de traitement : { idDevis, code, commentaire }, ou null
+    const [traitement, setTraitement] = useState(null);
 
     useEffect(() => {
         adminDevisService.recupererTousLesDevis()
@@ -25,10 +27,14 @@ const GestionDevis = () => {
     }, []);
 
     // Accepter ou refuser : on remplace la ligne par le devis renvoyé par le serveur
-    const changerStatut = (idDevis, code) => {
+    const confirmerStatut = () => {
         setErreur("");
-        adminDevisService.changerStatut(idDevis, code)
-            .then((maj) => setDevis((liste) => liste.map((d) => (d.idDevis === idDevis ? maj : d))))
+        const { idDevis, code, commentaire } = traitement;
+        adminDevisService.changerStatut(idDevis, code, commentaire)
+            .then((maj) => {
+                setDevis((liste) => liste.map((d) => (d.idDevis === idDevis ? maj : d)));
+                setTraitement(null);
+            })
             .catch((error) => setErreur(error.response?.data?.message || "Impossible de changer le statut."));
     };
 
@@ -56,7 +62,8 @@ const GestionDevis = () => {
                         </thead>
                         <tbody>
                             {devis.map((d) => (
-                                <tr key={d.idDevis}>
+                                <Fragment key={d.idDevis}>
+                                <tr>
                                     <td className="fw-semibold text-nowrap">{d.reference}</td>
                                     <td>{new Date(d.dateCreation).toLocaleDateString("fr-FR")}</td>
                                     <td>
@@ -68,22 +75,49 @@ const GestionDevis = () => {
                                     <td className="text-end">{formatPrix(d.totalTtc)}</td>
                                     <td>
                                         <span className={`badge ${couleurStatut(d.statut)}`}>{d.statut}</span>
+                                        {d.commentaireAdmin && (
+                                            <div className="small text-secondary mt-1">« {d.commentaireAdmin} »</div>
+                                        )}
                                     </td>
                                     <td className="text-nowrap">
-                                        {d.statut === "En attente" && (
+                                        {d.statut === "En attente" && traitement?.idDevis !== d.idDevis && (
                                             <>
                                                 <button className="btn btn-sm btn-success me-2"
-                                                        onClick={() => changerStatut(d.idDevis, "ACCEPTE")}>
+                                                        onClick={() => setTraitement({ idDevis: d.idDevis, code: "ACCEPTE", commentaire: "" })}>
                                                     Accepter
                                                 </button>
                                                 <button className="btn btn-sm btn-outline-danger"
-                                                        onClick={() => changerStatut(d.idDevis, "REFUSE")}>
+                                                        onClick={() => setTraitement({ idDevis: d.idDevis, code: "REFUSE", commentaire: "" })}>
                                                     Refuser
                                                 </button>
                                             </>
                                         )}
                                     </td>
                                 </tr>
+
+                                {/* Zone de commentaire sous la ligne, avant de confirmer */}
+                                {traitement?.idDevis === d.idDevis && (
+                                    <tr>
+                                        <td colSpan="7" className="bg-light">
+                                            <label htmlFor="commentaire" className="form-label fw-semibold">
+                                                {traitement.code === "ACCEPTE"
+                                                    ? "Message pour le client (facultatif)"
+                                                    : "Pourquoi le devis est refusé ? (obligatoire)"}
+                                            </label>
+                                            <textarea id="commentaire" className="form-control mb-2" rows="2" maxLength="1000"
+                                                      value={traitement.commentaire}
+                                                      onChange={(e) => setTraitement({ ...traitement, commentaire: e.target.value })} />
+                                            <button className={`btn btn-sm me-2 ${traitement.code === "ACCEPTE" ? "btn-success" : "btn-danger"}`}
+                                                    onClick={confirmerStatut}>
+                                                {traitement.code === "ACCEPTE" ? "Confirmer l'acceptation" : "Confirmer le refus"}
+                                            </button>
+                                            <button className="btn btn-sm btn-outline-secondary" onClick={() => setTraitement(null)}>
+                                                Annuler
+                                            </button>
+                                        </td>
+                                    </tr>
+                                )}
+                                </Fragment>
                             ))}
                         </tbody>
                     </table>

@@ -5,9 +5,9 @@ const recupererTousLesDevis = async () => {
     return response.data;
 };
 
-// code : "ACCEPTE" ou "REFUSE"
-const changerStatut = async (idDevis, code) => {
-    const response = await apiClient.put(`/api/admin/devis/${idDevis}/statut`, { code });
+// code : "ACCEPTE" ou "REFUSE" ; commentaire : message lu par le client (obligatoire pour un refus)
+const changerStatut = async (idDevis, code, commentaire) => {
+    const response = await apiClient.put(`/api/admin/devis/${idDevis}/statut`, { code, commentaire });
     return response.data;
 };
 

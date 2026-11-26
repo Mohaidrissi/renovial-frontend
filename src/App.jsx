@@ -8,6 +8,7 @@ import AdminLayout from './components/layout/AdminLayout';
 import Accueil from './pages/public/Accueil';
 import Contact from './pages/public/Contact';
 import Services from './pages/public/Services';
+import Apropos from './pages/public/Apropos';
 import Login from './pages/public/Login';
 import Register from './pages/public/Register';
 import MentionsLegales from './pages/public/MentionsLegales';
@@ -35,6 +36,7 @@ const App = () => {
                     <Route path="/" element={<Accueil />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/services" element={<Services />} />
+                    <Route path="/apropos" element={<Apropos />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/mentions-legales" element={<MentionsLegales />} />
