@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "http://localhost:8081",
+    baseURL: "", // même adresse que le site : Vite transmet au back (voir vite.config.js)
     headers: {
         "Content-Type": "application/json"
     }
